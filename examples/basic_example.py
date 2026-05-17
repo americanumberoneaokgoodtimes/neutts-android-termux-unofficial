@@ -15,6 +15,7 @@ def main(input_text, ref_audio_path, ref_text, backbone, output_path="output.wav
         backbone_device="cpu",
         codec_repo="neuphonic/neucodec",
         codec_device="cpu",
+        language="en-us"
     )
 
     # Check if ref_text is a path if it is read it if not just return string

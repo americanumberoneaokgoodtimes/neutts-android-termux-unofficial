@@ -2,12 +2,15 @@ import os
 import random
 from typing import Generator
 from pathlib import Path
-import librosa
 import numpy as np
 import torch
 import re
 import warnings
-from neucodec import NeuCodec, DistillNeuCodec
+try:
+    from neucodec import NeuCodec, DistillNeuCodec
+except ImportError:
+    NeuCodec = None
+    DistillNeuCodec = None
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from .phonemizers import BasePhonemizer, CUSTOM_PHONEMIZERS
 
@@ -275,8 +278,14 @@ class NeuTTS:
             raise NotImplementedError("Streaming is not implemented for the torch backend!")
 
     def encode_reference(self, ref_audio_path: str | Path):
-        wav, _ = librosa.load(ref_audio_path, sr=16000, mono=True)
-        wav_tensor = torch.from_numpy(wav).float().unsqueeze(0).unsqueeze(0)  # [1, 1, T]
+        import torchaudio
+        import torchaudio.functional as F
+        wav_tensor, sr = torchaudio.load(ref_audio_path)
+        if wav_tensor.shape[0] > 1:
+            wav_tensor = wav_tensor.mean(dim=0, keepdim=True)
+        if sr != 16000:
+            wav_tensor = F.resample(wav_tensor, sr, 16000)
+        wav_tensor = wav_tensor.unsqueeze(0)  # [1, 1, T]
         with torch.no_grad():
             ref_codes = self.codec.encode_code(audio_or_path=wav_tensor).squeeze(0).squeeze(0)
         return ref_codes

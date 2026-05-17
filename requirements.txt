@@ -1,0 +1,11 @@
+# Core project dependencies
+audioread
+gradio
+transformers==4.47.0
+huggingface-hub==0.25.0
+tokenizers==0.21.4
+torchao
+vector-quantize-pytorch==1.17.8
+einx
+local-attention
+soxr
